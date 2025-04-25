@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  react-native:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    ports:
+      - "8081:8081"  # Metro bundler
+      - "5555:5555"  # ADB
+    environment:
+      - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
+    command: npm start
+    stdin_open: true
+    tty: true
+
+volumes:
+  node_modules:
