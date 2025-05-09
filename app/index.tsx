@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, ImageBackground } from 'react-native';
-import Button  from '../components/Button'; 
-import { useNavigation } from '@react-navigation/native';
+import Button  from '../components/Button';  
+import { router } from 'expo-router';
 
-const API_KEY = 'd56c2e8dd0f2d59d20fb011274dc734e'; // <== Paste your real API key here
+const API_KEY = 'd56c2e8dd0f2d59d20fb011274dc734e'; 
 
 const dummyData = {
   main: {
@@ -19,7 +19,7 @@ const dummyData = {
 const WeatherScreen: React.FC = () => {
   const [weather, setWeather] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation()
+ 
 
   const fetchWeather = async () => {
     try {
@@ -32,7 +32,7 @@ const WeatherScreen: React.FC = () => {
       setWeather(data);
     } catch (error) {
       console.error('Failed to fetch weather:', error);
-      setWeather(dummyData); // Use dummy data in case of an error
+      setWeather(dummyData);
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ const WeatherScreen: React.FC = () => {
         <Button
           title="Check for Updates"
           iconName="arrow-down-circle"
-          onPress={() => navigation.navigate('SignUp')} 
+          onPress={() => router.navigate('SignUp')} 
         />
       </View>
     </View>
@@ -94,7 +94,6 @@ const WeatherScreen: React.FC = () => {
 };
 
 
-// --- styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,

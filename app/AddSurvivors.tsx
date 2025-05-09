@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import GrayButton from '@/components/GrayButton';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
 

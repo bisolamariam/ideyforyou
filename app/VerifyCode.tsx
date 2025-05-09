@@ -1,16 +1,17 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Animated, Alert } from 'react-native';
 import {Colors} from '../constants/Colors';
-import Button from '../components/Button'; // using our reusable button now!
+import Button from '../components/Button'; 
 import Dot from '../components/Dot';
-import { useNavigation } from 'expo-router';
-
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import {supabase} from '../lib/supabase'
 const VerifyCode = () => {
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const {fullName, phoneNumber,email} = useLocalSearchParams()
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState(false);
   const [focusedInput, setFocusedInput] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const navigation = useNavigation()
+ 
   const inputs = useRef<Array<TextInput | null>>([]);
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
@@ -29,7 +30,7 @@ const VerifyCode = () => {
     newOtp[index] = text;
     setOtp(newOtp);
 
-    if (text && index < 3) {
+    if (text && index < 5) {
       inputs.current[index + 1]?.focus();
     }
 
@@ -39,30 +40,46 @@ const VerifyCode = () => {
   };
 
   const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === 'Backspace' && otp[index] === '' && index > 0) {
+    if (e.nativeEvent.key === 'Backspace' /*&& otp[index] === ''*/ && index > 0) {
       inputs.current[index - 1]?.focus();
     }
   };
 
-  const handleSubmit = (enteredCode: string) => {
+  const handleSubmit = async (enteredCode: string) => {
     setLoading(true);
-    setTimeout(() => { // simulate API
-      if (enteredCode === '1234') {
-        console.log('Correct Code');
-        setError(false);
-        navigation.navigate('CorrectCode')
-      } else {
-        console.log('Incorrect Code');
-        setError(true);
-        triggerShake();
+    const emailString = Array.isArray(email) ? email[0] : email;
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: emailString,
+        token: enteredCode,        
+        type: 'email',
+      })
+      if(error){
+        throw error
       }
+     const {error: databaseError} = await supabase.from('Profiles').insert({
+        id: data?.user?.id,
+        name: fullName,
+        email: email,
+        phone_number: phoneNumber,
+        role: 'dsp',
+      })
+      if(databaseError){
+        Alert.alert('Failed to create user profile. Please try again.', databaseError.message);
+        return
+      }
+      router.push({ pathname :'CorrectCode',params: {role: 'dsp'}})
+    } catch (err) {
+      setError(true);
+      triggerShake();
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleResend = () => {
     console.log('Resend Code');
-    setOtp(['', '', '', '']);
+    setOtp(['', '', '', '', '', '']);
     inputs.current[0]?.focus();
     setError(false);
   };
@@ -75,7 +92,7 @@ const VerifyCode = () => {
       {error && <Text style={styles.errorText}>Incorrect code</Text>}
 
       <Text style={styles.title}>Enter confirmation code</Text>
-      <Text style={styles.subtitle}>A 4-digit code was sent to michael@exp.com</Text>
+      <Text style={styles.subtitle}>{`A 6-digit code was sent to ${email}`}</Text>
 
       <Animated.View style={[styles.otpContainer, { transform: [{ translateX: shakeAnim }] }]}>
         {otp.map((digit, index) => (
@@ -142,7 +159,7 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '70%',
+    width: '100%',
     marginBottom: 20,
   },
   otpInput: {

@@ -1,22 +1,23 @@
-import { useNavigation } from 'expo-router';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import React, { useEffect } from 'react';
 import { View, Image, StyleSheet, Text } from 'react-native';
 
-export default function LoadingPage({ userType }: { userType: string }) {
- 
-    const navigation = useNavigation()
+export default function CorrectCode() {
+  const {role} = useLocalSearchParams()
+   
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.navigate('LogoPage');
+      router.push('LogoPage');
+      console.log(role)
     }, 2000); 
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [router]);
 
-  const getTextForUserType = (type: string) => {
-    switch (type) {
-      case 'dvs':
+  const getTextForUserType = (role: string) => {
+    switch (role) {
+      case 'dsp':
         return 'Looking for Safe Housing? Find it here';
       case 'user':
         return 'Welcome, User! Explore your dashboard.';
@@ -32,7 +33,7 @@ export default function LoadingPage({ userType }: { userType: string }) {
         <View style={styles.imageWrapper}>
       <Image source={require('../assets/images/Security.png')} style={styles.image} />
     </View>
-    <Text style={styles.text}>{getTextForUserType("dvs")}</Text>
+    <Text style={styles.text}>{getTextForUserType(Array.isArray(role) ? role[0] : role)}</Text>
     </View>
   );
 }
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   imageWrapper: {
-    width: 180, // slightly bigger than image maybe
+    width: 180,
     height: 180,
     justifyContent: 'center',
     alignItems: 'center',

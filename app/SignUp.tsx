@@ -1,12 +1,15 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import Icon from 'react-native-vector-icons/Entypo';
 import User from 'react-native-vector-icons/Feather';
 import PhoneIcon from 'react-native-vector-icons/AntDesign'; 
-import Mail from 'react-native-vector-icons/Ionicons'
-import { useNavigation } from '@react-navigation/native';
+import Mail from 'react-native-vector-icons/Ionicons' 
+import {supabase} from '../lib/supabase'
+import { router } from 'expo-router';
+import { ActivityIndicator } from 'react-native';
+import { Colors } from '@/constants/Colors';
 const SignUpSchema = Yup.object().shape({
   fullName: Yup.string().required('Full name is required'),
   phoneNumber: Yup.string().required('Phone number is required'),
@@ -14,11 +17,58 @@ const SignUpSchema = Yup.object().shape({
 });
 
 const SignUp = () => {
-  const navigation = useNavigation()
+ 
+  const [loading, setLoading] = useState(false)
+
+  const sendVerificationCode = async ({fullName, phoneNumber, email } : {
+    fullName: string;
+    phoneNumber: string;
+    email: string;
+  }) => {
+    setLoading(true)
+    try {
+      const { data: existingUser, error: checkError } = await supabase
+      .from('Profiles') 
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+     console.error('Error checking for existing user:', checkError);
+     setLoading(false)
+     return
+    }
+
+    if (existingUser) {
+      Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
+      setLoading(false);
+      return;
+    }
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: true,
+        },
+      })
+      
+      if (error) {
+    throw error
+      }
+      setLoading(false)
+    router.push({
+      pathname: 'VerifyCode',
+      params: { fullName, phoneNumber, email },
+    });
+  } catch (error) {
+    setLoading(false)
+    console.error('Error sending verification code:', error);
+    Alert.alert('Error', 'Failed to send verification code. Please try again.');
+  }
+};
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.backBtn} onPress={() =>  router.back()}>
           <Icon name="chevron-thin-left" size={24} color="#1E1E2D" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Sign Up</Text>
@@ -28,13 +78,13 @@ const SignUp = () => {
         initialValues={{ fullName: '', phoneNumber: '', email: '' }}
         validationSchema={SignUpSchema}
         onSubmit={(values) => {
-          console.log(values);
-          navigation.navigate('VerifyCode');
+         
+          sendVerificationCode(values)
         }}
       >
         {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
           <View style={{ marginTop: 30 }}>
-            {/* Full Name */}
+          
             <Text style={styles.title}>Full Name</Text>
             <View style={styles.inputWrapper}>
               <User name="user" size={20} color="#9CA3AF" style={styles.inputIcon} />
@@ -50,7 +100,7 @@ const SignUp = () => {
               <Text style={styles.errorText}>{errors.fullName}</Text>
             )}
 
-            {/* Phone Number */}
+          
             <Text style={styles.title}>Phone Number</Text>
             <View style={styles.inputWrapper}>
               <PhoneIcon name="phone" size={20} color="#9CA3AF" style={styles.inputIcon} />
@@ -67,7 +117,7 @@ const SignUp = () => {
               <Text style={styles.errorText}>{errors.phoneNumber}</Text>
             )}
 
-            {/* Email */}
+         
             <Text style={styles.title}>Email Address</Text>
             <View style={styles.inputWrapper}>
 
@@ -86,12 +136,14 @@ const SignUp = () => {
               <Text style={styles.errorText}>{errors.email}</Text>
             )}
 
-            {/* Sign Up Button */}
+          
             <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+              { loading ?  (<ActivityIndicator color={Colors.textDark} />) : (
               <Text style={styles.submitBtnText}>Sign Up</Text>
+            )}
             </TouchableOpacity>
 
-            {/* Bottom Text */}
+           
             <View style={styles.bottomTextContainer}>
               <Text style={styles.bottomText}>Already have an account? </Text>
               <TouchableOpacity>
