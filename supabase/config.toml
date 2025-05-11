@@ -1,0 +1,4 @@
+[functions.invite-user]
+verify_jwt = false
+import_map = "./functions/invite-user/deno.json"
+entrypoint = "./functions/invite-user/index.ts"
