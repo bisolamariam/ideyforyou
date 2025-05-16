@@ -1,8 +1,9 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
-import { supabase} from '../lib/supabase'
+import { supabase} from '../../lib/supabase'
 export default function LogoPage() {
+  const {role} = useLocalSearchParams()
 
 //   useEffect(() => {
 //       const timer = setTimeout(() => {
@@ -20,14 +21,15 @@ useEffect(() => {
 
       if (authError || !authData?.user) {
         console.log('Auth Error:', authError);
-        router.push('/SignUp');
+        router.push('./SignUp');
         return;
       }
 
       const userId = authData.user.id;
+      console.log(authData, "this is auth data")
       console.log('User ID:', userId);
       const { data: profile, error: profileError } = await supabase
-      .from('Profiles')
+      .from(`${role}`)
       .select('name')
       .eq('id', userId)
       .single();
@@ -43,8 +45,8 @@ useEffect(() => {
     // const role = profile.role;
 
     router.push({
-      pathname: '/Home',
-      params: { userName: firstName, showBottomNav: true },
+      pathname: `../${role}`,
+      params: { userName: firstName, showBottomNav: role === 'DSP' },
     });
   } catch (error) {
     console.error('Unexpected Error:', error);
@@ -56,7 +58,7 @@ useEffect(() => {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/images/ideyforyou-logo-deep-yellow 1.png')} style={styles.image} />
+      <Image source={require('@/assets/images/ideyforyou-logo-deep-yellow 1.png')} style={styles.image} />
     </View>
   );
 }

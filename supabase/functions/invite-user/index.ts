@@ -70,6 +70,26 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: linkError.message }), { status: 400 });
   }
 
+  // Send email using Resend
+  const resendResponse = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
+    },
+    body: JSON.stringify({
+      from: "hello@ideyforyou.com",
+      to: invited_by,
+      subject: `Survivor Invitation Link`,
+      html: `<p>A login link has been generated for ${name}:</p><p><a href="${linkData.properties?.action_link}">${linkData.properties?.action_link}</a></p>`
+    })
+  });
+
+  if (!resendResponse.ok) {
+    const resendError = await resendResponse.json();
+    return new Response(JSON.stringify({ error: resendError.message || 'Failed to send email' }), { status: 500 });
+  }
+
   return new Response(JSON.stringify({ link: linkData.properties?.action_link }), { status: 200 });
 });
 

@@ -8,7 +8,7 @@ export default function CorrectCode() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push('LogoPage');
+       router.push({ pathname :'./LogoPage',params: {role: role}})
       console.log(role)
     }, 2000); 
 
@@ -17,12 +17,12 @@ export default function CorrectCode() {
 
   const getTextForUserType = (role: string) => {
     switch (role) {
-      case 'dsp':
+      case 'DSP':
         return 'Looking for Safe Housing? Find it here';
-      case 'user':
-        return 'Welcome, User! Explore your dashboard.';
-      case 'guest':
-        return 'Welcome, Guest! Discover what we offer.';
+      case 'REP':
+        return 'Got safe housing? Offer it here';
+      case 'survivor':
+        return 'Looking for Safe Housing? Find it here';
       default:
         return 'Welcome!';
     }
@@ -31,7 +31,7 @@ export default function CorrectCode() {
   return (
     <View style={styles.container}>
         <View style={styles.imageWrapper}>
-      <Image source={require('../assets/images/Security.png')} style={styles.image} />
+      <Image source={require('@/assets/images/Security.png')} style={styles.image} />
     </View>
     <Text style={styles.text}>{getTextForUserType(Array.isArray(role) ? role[0] : role)}</Text>
     </View>

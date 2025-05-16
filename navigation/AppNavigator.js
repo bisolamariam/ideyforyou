@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import SignUp from '../app/SignUp';
-import VerifyCode from '../app/VerifyCode';
+import SignUp from '../app/onboarding/SignUp';
+import VerifyCode from '../app/onboarding/VerifyCode';
 import WeatherScreen from '../app';
 
 const Stack = createStackNavigator();

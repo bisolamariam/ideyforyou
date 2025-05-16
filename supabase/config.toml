@@ -2,3 +2,8 @@
 verify_jwt = false
 import_map = "./functions/invite-user/deno.json"
 entrypoint = "./functions/invite-user/index.ts"
+
+[functions.delayed-link-sender]
+verify_jwt = false
+import_map = "./functions/delayed-link-sender/deno.json"
+entrypoint = "./functions/delayed-link-sender/index.ts"

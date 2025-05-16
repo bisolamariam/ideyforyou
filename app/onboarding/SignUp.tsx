@@ -6,7 +6,8 @@ import Icon from 'react-native-vector-icons/Entypo';
 import User from 'react-native-vector-icons/Feather';
 import PhoneIcon from 'react-native-vector-icons/AntDesign'; 
 import Mail from 'react-native-vector-icons/Ionicons' 
-import {supabase} from '../lib/supabase'
+import { Picker } from '@react-native-picker/picker'
+import {supabase} from '../../lib/supabase'
 import { router } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import { Colors } from '@/constants/Colors';
@@ -14,36 +15,79 @@ const SignUpSchema = Yup.object().shape({
   fullName: Yup.string().required('Full name is required'),
   phoneNumber: Yup.string().required('Phone number is required'),
   email: Yup.string().email('Invalid email').required('Email is required'),
+  role: Yup.string().required('Role is required'),
 });
 
 const SignUp = () => {
  
   const [loading, setLoading] = useState(false)
 
-  const sendVerificationCode = async ({fullName, phoneNumber, email } : {
+  const sendVerificationCode = async ({fullName, phoneNumber, email, role } : {
     fullName: string;
     phoneNumber: string;
     email: string;
+    role: string;
   }) => {
     setLoading(true)
     try {
-      const { data: existingUser, error: checkError } = await supabase
-      .from('Profiles') 
+      console.log(email)
+  const dspResult = await supabase
+      .from('DSP')
       .select('id')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
-    if (checkError && checkError.code !== 'PGRST116') {
-     console.error('Error checking for existing user:', checkError);
-     setLoading(false)
-     return
+    if (dspResult.error && dspResult.error.code !== 'PGRST116') {
+      console.error('Error checking DSP table:', dspResult.error);
+      setLoading(false);
+      return;
     }
 
-    if (existingUser) {
+    if (dspResult.data) {
       Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
       setLoading(false);
       return;
     }
+
+    const repResult = await supabase
+      .from('REP')
+      .select('id')
+      .eq('email', email.trim())
+      .maybeSingle();
+
+    if (repResult.error && repResult.error.code !== 'PGRST116') {
+      console.error('Error checking REP table:', repResult.error);
+      setLoading(false);
+      return;
+    }
+
+    if (repResult.data) {
+      Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
+      setLoading(false);
+      return;
+    }
+    console.log('DSP Result:', dspResult);
+console.log('REP Result:', repResult)
+
+  
+
+    // if (dspResult.error && dspResult.error.code !== 'PGRST116') {
+    //   console.error('Error checking DSP table:', dspResult.error);
+    //   setLoading(false);
+    //   return;
+    // }
+
+    // if (repResult.error && repResult.error.code !== 'PGRST116') {
+    //   console.error('Error checking REP table:', repResult.error);
+    //   setLoading(false);
+    //   return;
+    // }
+
+    // if (existingUserInDSP || existingUserInREP) {
+    //   Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
+    //   setLoading(false);
+    //   return;
+    // }
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
@@ -54,15 +98,16 @@ const SignUp = () => {
       if (error) {
     throw error
       }
-      setLoading(false)
+
     router.push({
-      pathname: 'VerifyCode',
-      params: { fullName, phoneNumber, email },
+      pathname: './VerifyCode',
+      params: { fullName, phoneNumber, email,role },
     });
   } catch (error) {
-    setLoading(false)
     console.error('Error sending verification code:', error);
     Alert.alert('Error', 'Failed to send verification code. Please try again.');
+  } finally {
+    setLoading(false)
   }
 };
   return (
@@ -75,14 +120,14 @@ const SignUp = () => {
       </View>
 
       <Formik
-        initialValues={{ fullName: '', phoneNumber: '', email: '' }}
+        initialValues={{ fullName: '', phoneNumber: '', email: '', role: '' }}
         validationSchema={SignUpSchema}
         onSubmit={(values) => {
          
           sendVerificationCode(values)
         }}
       >
-        {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+        {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue  }) => (
           <View style={{ marginTop: 30 }}>
           
             <Text style={styles.title}>Full Name</Text>
@@ -136,6 +181,21 @@ const SignUp = () => {
               <Text style={styles.errorText}>{errors.email}</Text>
             )}
 
+              <Text style={styles.title}>Role</Text>
+            <View style={styles.inputWrapper}>
+              <Picker
+                selectedValue={values.role}
+                onValueChange={(itemValue) => setFieldValue('role', itemValue)}
+                style={{ flex: 1 }}
+              >
+                <Picker.Item label="Select Role" value="" />
+                <Picker.Item label="Domestic Service Provider" value="DSP" />
+                <Picker.Item label="Real Estate Provider" value="REP" />
+              </Picker>
+            </View>
+            {errors.role && touched.role && <Text style={styles.errorText}>{errors.role}</Text>}
+
+
           
             <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
               { loading ?  (<ActivityIndicator color={Colors.textDark} />) : (
@@ -147,7 +207,7 @@ const SignUp = () => {
             <View style={styles.bottomTextContainer}>
               <Text style={styles.bottomText}>Already have an account? </Text>
               <TouchableOpacity>
-                <Text style={styles.signInText}>Sign Up</Text>
+                <Text style={styles.signInText}>Sign In</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -211,7 +271,7 @@ const styles = StyleSheet.create({
     height: 55,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 124,
+    marginTop: 69,
   },
   submitBtnText: {
     fontSize: 16,

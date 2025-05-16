@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, ImageBackground } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, ImageBackground, Alert, StatusBar } from 'react-native';
 import Button  from '../components/Button';  
-import { router } from 'expo-router';
-
+import { router, useGlobalSearchParams } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext'
+import { Linking } from 'react-native';
 const API_KEY = 'd56c2e8dd0f2d59d20fb011274dc734e'; 
 
 const dummyData = {
@@ -19,8 +21,9 @@ const dummyData = {
 const WeatherScreen: React.FC = () => {
   const [weather, setWeather] = useState<any>(null);
   const [loading, setLoading] = useState(true);
- 
-
+ const [appLoading, setAppLoading] = useState(false)
+const { user, loading: authLoading, refreshSession } = useAuth();
+const params = useGlobalSearchParams();
   const fetchWeather = async () => {
     try {
       setLoading(true);
@@ -31,18 +34,119 @@ const WeatherScreen: React.FC = () => {
       const data = await response.json();
       setWeather(data);
     } catch (error) {
-      console.error('Failed to fetch weather:', error);
       setWeather(dummyData);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchWeather();
-  }, []);
+const handleClick = async () => {
+  setAppLoading(true);
+ 
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (loading) {
+    if (error || !user) {
+      console.log('Error fetching user:', error);
+      router.push('/onboarding');
+      return;
+    }
+console.log(user, "this is user from click")
+
+
+    const role = user?.user_metadata.role;
+    const fullName = user?.user_metadata.name || 'User';
+    const firstName = fullName.split(' ')[0];
+console.log(role, "role from click")
+    if (role === 'survivor') {
+       router.replace({
+              pathname: './survivor',
+              params: { userName: firstName, showBottomNav: false },
+            });
+    } else if (role === 'DSP' || role === 'REP') {
+      console.log(`know youre ${role}`)
+      const { data: profile, error: profileError } = await supabase
+        .from(`${role}`)
+        .select('onboarding_complete')
+        .eq('id', user?.id)
+        .single();
+
+      if (profileError) {
+        console.log('Error fetching profile:', profileError);
+        router.push('./onboarding');
+        return;
+      }
+
+      if (profile?.onboarding_complete) {
+        console.log('Onboarding complete, navigating to DSP home');
+         router.replace({
+              pathname: `./${role}`,
+              params: { userName: firstName, showBottomNav: role === 'DSP'},
+            });
+      } else {
+        router.push('/onboarding');
+      }
+    }
+  } catch (error) {
+    console.error('Unexpected error in handleClick:', error);
+    router.push('/onboarding');
+  } finally {
+    setAppLoading(false); 
+  }
+};
+
+const getSurvivorEmail = async () => {
+  const {data: profile, error} = await supabase
+  .from('Survivors')
+  .select('email')
+}
+
+const handleMagicLink = async () => {
+  const initialUrl = await Linking.getInitialURL();
+  console.log('Initial URL:', initialUrl);
+
+  if (!initialUrl) return;
+
+  try {
+    const url = new URL(initialUrl);
+    const hash = url.hash; // everything after #
+    
+    // remove the leading '#' and parse like query string
+    const params = new URLSearchParams(hash.replace(/^#/, ''));
+
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+
+    console.log('access_token:', access_token);
+    console.log('refresh_token:', refresh_token);
+
+    if (access_token && refresh_token) {
+      const { error } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      });
+
+      if (error) {
+        Alert.alert('Login Error', error.message);
+      } else {
+        console.log('Session set successfully');
+        await refreshSession();
+      }
+    }
+  } catch (error) {
+    console.error('Error parsing magic link:', error);
+  }
+};
+
+useEffect(() => {
+  handleMagicLink()
+}, [])
+
+useEffect(() => {
+  fetchWeather();
+}, []);
+
+  if (loading || authLoading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#FFD700" />
@@ -64,10 +168,13 @@ const WeatherScreen: React.FC = () => {
   const condition = weather?.weather?.[0]?.description || dummyData.weather[0].description;
 
   return (
+    <>
+    <StatusBar barStyle="light-content" backgroundColor="#000" />
+   
     <View style={styles.container}>
       <Text style={styles.title}>WEATHER APP</Text>
       <ImageBackground 
-        source={require('../assets/images/weather.png')} 
+        source={require('@/assets/images/weather.png')} 
         style={styles.card} 
         imageStyle={styles.imageBackground}
       >
@@ -86,10 +193,12 @@ const WeatherScreen: React.FC = () => {
         <Button
           title="Check for Updates"
           iconName="arrow-down-circle"
-          onPress={() => router.navigate('SignUp')} 
+          onPress={handleClick} 
+          loading={appLoading}
         />
       </View>
     </View>
+     </>
   );
 };
 

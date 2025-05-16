@@ -4,9 +4,13 @@
     "slug": "idey",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./app/assets/images/icon.png",
+    "icon": "./assets/images/ideyforyouLogo.jpg",
     "scheme": "ideyforyouapp",
-    "deepLinking": true,
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -14,21 +18,22 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./app/assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/ideyforyouLogo.jpg",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ideyforyou.app"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./app/assets/images/favicon.png"
+      "favicon": "./assets/images/ideyforyouLogo.jpg"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./app/assets/images/splash-icon.png",
+          "image": "./assets/images/ideyforyou-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -37,6 +42,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "2a27cfd3-c0aa-41c3-994e-19016c2c2cc4"
+      }
+    },
+    "owner": "ishaaaq"
   }
 }

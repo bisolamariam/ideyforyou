@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Animated, Alert } from 'react-native';
-import {Colors} from '../constants/Colors';
-import Button from '../components/Button'; 
-import Dot from '../components/Dot';
+import {Colors} from '../../constants/Colors';
+import Button from '../../components/Button'; 
+import Dot from '../../components/Dot';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
-import {supabase} from '../lib/supabase'
+import {supabase} from '../../lib/supabase'
 const VerifyCode = () => {
-  const {fullName, phoneNumber,email} = useLocalSearchParams()
+  const {fullName, phoneNumber,email, role} = useLocalSearchParams()
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState(false);
   const [focusedInput, setFocusedInput] = useState<number | null>(null);
@@ -57,18 +57,34 @@ const VerifyCode = () => {
       if(error){
         throw error
       }
-     const {error: databaseError} = await supabase.from('Profiles').insert({
+     const {error: databaseError} = await supabase.from(`${role}`).insert({
         id: data?.user?.id,
         name: fullName,
         email: email,
         phone_number: phoneNumber,
-        role: 'dsp',
+        role: `${role}`,
+        onboarding_complete: true
       })
       if(databaseError){
         Alert.alert('Failed to create user profile. Please try again.', databaseError.message);
         return
       }
-      router.push({ pathname :'CorrectCode',params: {role: 'dsp'}})
+
+         const { data: userData, error: userError } = await supabase.auth.updateUser({
+            data: {
+                name: fullName,
+                email: email,
+                role: `${role}`,
+            },
+          });
+      
+          if (userError) {
+            console.error(userError)
+             Alert.alert('Error', 'Failed to update user metadata. Please try again.');
+            return;
+          }
+
+      router.push({ pathname :'./CorrectCode',params: {role: role}})
     } catch (err) {
       setError(true);
       triggerShake();
