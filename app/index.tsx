@@ -48,7 +48,7 @@ const handleClick = async () => {
 
     if (error || !user) {
       console.log('Error fetching user:', error);
-      router.push('/onboarding');
+      router.push('./onboarding');
       return;
     }
 console.log(user, "this is user from click")
@@ -84,12 +84,12 @@ console.log(role, "role from click")
               params: { userName: firstName, showBottomNav: role === 'DSP'},
             });
       } else {
-        router.push('/onboarding');
+        router.push('./onboarding');
       }
     }
   } catch (error) {
     console.error('Unexpected error in handleClick:', error);
-    router.push('/onboarding');
+    router.push('./onboarding');
   } finally {
     setAppLoading(false); 
   }
@@ -109,16 +109,15 @@ const handleMagicLink = async () => {
 
   try {
     const url = new URL(initialUrl);
-    const hash = url.hash; // everything after #
+    const hash = url.hash;
     
-    // remove the leading '#' and parse like query string
     const params = new URLSearchParams(hash.replace(/^#/, ''));
 
     const access_token = params.get('access_token');
     const refresh_token = params.get('refresh_token');
 
-    console.log('access_token:', access_token);
-    console.log('refresh_token:', refresh_token);
+    // console.log('access_token:', access_token);
+    // console.log('refresh_token:', refresh_token);
 
     if (access_token && refresh_token) {
       const { error } = await supabase.auth.setSession({
@@ -129,7 +128,7 @@ const handleMagicLink = async () => {
       if (error) {
         Alert.alert('Login Error', error.message);
       } else {
-        console.log('Session set successfully');
+        // console.log('Session set successfully');
         await refreshSession();
       }
     }
