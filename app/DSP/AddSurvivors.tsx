@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-
+import { showAlert } from '@/lib/showAlert';
 const AddSurvivors: React.FC = () => {
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
@@ -30,16 +30,16 @@ const { user } = useAuth()
     const result = await response.json();
 
     if (!response.ok) {
-      console.error('Invite failed:', result);
-      Alert.alert('Error', result.error || 'Failed to invite survivor.');
+      // console.error('Invite failed:', result);
+      showAlert('Error', result.error || 'Failed to invite survivor.');
       return;
     }
-    console.log("link should be here", result)
-    Alert.alert('Success', "Check your email for survivor invite link");
+    // console.log("link should be here", result)
+    showAlert('Success', result.message);
     router.back();
   } catch (err) {
     console.error('Unexpected error:', err);
-    Alert.alert('Error', 'Something went wrong. Please try again.');
+    showAlert('Error', 'Something went wrong. Please try again.');
   } finally {
     setLoading(false)
   }
@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     paddingVertical: 13.5,
     fontSize: 17,
+    outlineStyle: 'none'
   },
   buttons: {
     flex: 1,

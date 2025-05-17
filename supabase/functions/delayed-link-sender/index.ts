@@ -5,7 +5,7 @@ import { Resend } from "https://esm.sh/resend";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY")!);
 
 serve(async () => {
-  console.log("delayed-link-sender triggered at", new Date().toISOString());
+  // console.log("delayed-link-sender triggered at", new Date().toISOString());
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -18,7 +18,7 @@ serve(async () => {
     .eq("needs_link", true);
 
   if (fetchError) {
-    console.error("Error fetching survivors:", fetchError.message);
+    // console.error("Error fetching survivors:", fetchError.message);
     return new Response(JSON.stringify({ error: fetchError.message }), { status: 500 });
   }
 

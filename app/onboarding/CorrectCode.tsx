@@ -9,7 +9,7 @@ export default function CorrectCode() {
   useEffect(() => {
     const timer = setTimeout(() => {
        router.push({ pathname :'./LogoPage',params: {role: role}})
-      console.log(role)
+      // console.log(role)
     }, 2000); 
 
     return () => clearTimeout(timer);

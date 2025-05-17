@@ -13,5 +13,6 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "App.js", "navigation/AppNavigator.js"  ]
+, "App.js", "navigation/AppNavigator.js",  ],
+"jsx": "preserve"
 }

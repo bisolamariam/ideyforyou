@@ -36,11 +36,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user || null);
     });
-console.log("auth", session, "now user", user)
+
     return () => {
       listener.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+  // console.log("Auth session updated:", session);
+  // console.log("Auth user updated:", user);
+}, [session, user]);
 
   return (
     <AuthContext.Provider

@@ -6,7 +6,7 @@ const REPHome: React.FC = () => {
    const { userName, showBottomNav } = useLocalSearchParams()
   return (
     <>
-      <HomeScreen userName={userName} showBottomNav={false} role="REP" />
+      <HomeScreen userName={userName} showBottomNav={false} role="REP" exit={false}/>
     </>
   );
 };

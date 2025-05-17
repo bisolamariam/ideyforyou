@@ -1,23 +1,30 @@
+import { Colors } from '@/constants/Colors';
 import { supabase } from '@/lib/supabase';
-import { router, useGlobalSearchParams, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 interface HomeScreenProps {
   userName: string;
   showBottomNav: boolean;
-}
+  role: string;
+  exit: boolean
+;}
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ userName, showBottomNav, role } ) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({ userName, showBottomNav, role, exit } ) => {
    
    const logOut = async () => {
     try {
       await supabase.auth.signOut(); 
       router.replace('./onboarding'); 
     } catch (error) {
-      console.error('Error signing out:', error);
+      // console.error('Error signing out:', error);
     }
-  }
+  } 
+  const handleExit = () => {
+    router.replace('/')
+  }       
   return (
     <View style={styles.container}>
       <Text style={styles.greeting}>Hello, {userName}</Text>
@@ -44,8 +51,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ userName, showBottomNav, role }
         <Text style={styles.askLink}><Icon name="headset-mic" size={16} color="black" /> Ask Circe</Text>
       </TouchableOpacity>
       </View>
+        {exit && (
+        <TouchableOpacity style={styles.floatingButton} onPress={handleExit}>
+          <Icon name="add" size={24} color="#fff" />
+          <Text style={styles.floatingButtonText}>Exit</Text>
+        </TouchableOpacity>
+      )}
+
         <View style={[styles.bottomNav, { display: showBottomNav ? 'flex' : 'none' }]}>
-          <TouchableOpacity style={styles.navButton} onPress={logOut}>
+          <TouchableOpacity style={styles.navButton}>
           <Icon name="list" size={24} color="#000" /> 
             <Text style={styles.navText}>Gida List</Text>
           </TouchableOpacity>
@@ -138,4 +152,22 @@ const styles = StyleSheet.create({
   navText: {
     fontSize: 14,
   },
+  floatingButton: {
+  position: 'absolute',
+  bottom: 100, 
+  right: 20, 
+  backgroundColor: Colors.primary,
+  borderRadius: 50,
+  paddingVertical: 15,
+  paddingHorizontal: 20,
+  flexDirection: 'row',
+  alignItems: 'center',
+  
+},
+floatingButtonText: {
+  color: '#fff',
+  fontWeight: '600',
+  fontSize: 16,
+  marginLeft: 8,
+},
 });

@@ -1,10 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Animated, Alert } from 'react-native';
 import {Colors} from '../../constants/Colors';
 import Button from '../../components/Button'; 
 import Dot from '../../components/Dot';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import {supabase} from '../../lib/supabase'
+import { showAlert } from '@/lib/showAlert';
 const VerifyCode = () => {
   const {fullName, phoneNumber,email, role} = useLocalSearchParams()
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -12,6 +13,9 @@ const VerifyCode = () => {
   const [focusedInput, setFocusedInput] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
  
+  const [cooldown, setCooldown] = useState(30);
+  const [canResend, setCanResend] = useState(false);
+
   const inputs = useRef<Array<TextInput | null>>([]);
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
@@ -66,7 +70,7 @@ const VerifyCode = () => {
         onboarding_complete: true
       })
       if(databaseError){
-        Alert.alert('Failed to create user profile. Please try again.', databaseError.message);
+        showAlert('Failed to create user profile. Please try again.', databaseError.message);
         return
       }
 
@@ -79,8 +83,8 @@ const VerifyCode = () => {
           });
       
           if (userError) {
-            console.error(userError)
-             Alert.alert('Error', 'Failed to update user metadata. Please try again.');
+            // console.error(userError)
+             showAlert('Error', 'Failed to update user metadata. Please try again.');
             return;
           }
 
@@ -93,11 +97,34 @@ const VerifyCode = () => {
     }
   };
 
-  const handleResend = () => {
-    console.log('Resend Code');
-    setOtp(['', '', '', '', '', '']);
-    inputs.current[0]?.focus();
-    setError(false);
+  // const handleResend = () => {
+  //   // console.log('Resend Code');
+  //   setOtp(['', '', '', '', '', '']);
+  //   inputs.current[0]?.focus();
+  //   setError(false);
+  // };
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (cooldown > 0) {
+      setCanResend(false);
+      timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+    } else {
+      setCanResend(true);
+    }
+    return () => clearTimeout(timer);
+  }, [cooldown]);
+
+  const handleResend = async () => {
+    if (!canResend) return;
+ const emailString = Array.isArray(email) ? email[0] : email;
+   
+    const { error } = await supabase.auth.signInWithOtp({ email: emailString });
+    if (error) {
+      // console.error('Resend error:', error);
+    } else {
+      setCooldown(30);
+    }
   };
 
   return (
@@ -132,9 +159,16 @@ const VerifyCode = () => {
           />
         ))}
       </Animated.View>
-      <TouchableOpacity style={styles.resendText} onPress={handleResend}>
+      <TouchableOpacity 
+       onPress={handleResend}
+        disabled={!canResend}
+        style={[
+          styles.resendText,
+          { opacity: canResend ? 1 : 0.5 }
+        ]}
+    >
         <Dot/>
-        <Text style={{color: Colors.primary}}> Resend code</Text>
+        <Text style={{color: Colors.primary}}> {canResend ? 'Resend code' : `Resend in ${cooldown}s`}</Text>
         <Dot/>
       </TouchableOpacity>
 
@@ -162,7 +196,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textDark,
     marginBottom: 8,
-    fontFamily: 'Urbanist'
+    // fontFamily: 'Urbanist'
   },
   subtitle: {
     fontSize: 13,
@@ -170,7 +204,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     width: 200,
     textAlign: 'center',
-    fontFamily: 'Urbanist'
+    // fontFamily: 'Urbanist'
   },
   otpContainer: {
     flexDirection: 'row',
@@ -187,7 +221,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 20,
     color: Colors.textDark,
-    
+    outlineStyle: 'none'
   },
   errorBorder: {
     borderColor: 'red',

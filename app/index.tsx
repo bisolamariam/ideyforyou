@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, ImageBackground, Alert, StatusBar } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, ImageBackground, Alert, StatusBar, Platform } from 'react-native';
 import Button  from '../components/Button';  
 import { router, useGlobalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext'
 import { Linking } from 'react-native';
+import { showAlert } from '@/lib/showAlert';
 const API_KEY = 'd56c2e8dd0f2d59d20fb011274dc734e'; 
 
 const dummyData = {
@@ -28,8 +29,7 @@ const params = useGlobalSearchParams();
     try {
       setLoading(true);
       const response = await fetch(
-        'heyy'
-        // `https://api.openweathermap.org/data/2.5/weather?q=Chicago&units=metric&appid=${API_KEY}`
+               `https://api.openweathermap.org/data/2.5/weather?q=Chicago&units=metric&appid=${API_KEY}`
       );
       const data = await response.json();
       setWeather(data);
@@ -47,24 +47,24 @@ const handleClick = async () => {
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user) {
-      console.log('Error fetching user:', error);
+      // console.log('Error fetching user:', error);
       router.push('./onboarding');
       return;
     }
-console.log(user, "this is user from click")
+// console.log(user, "this is user from click")
 
 
     const role = user?.user_metadata.role;
     const fullName = user?.user_metadata.name || 'User';
     const firstName = fullName.split(' ')[0];
-console.log(role, "role from click")
+// console.log(role, "role from click")
     if (role === 'survivor') {
        router.replace({
               pathname: './survivor',
               params: { userName: firstName, showBottomNav: false },
             });
     } else if (role === 'DSP' || role === 'REP') {
-      console.log(`know youre ${role}`)
+      // console.log(`know youre ${role}`)
       const { data: profile, error: profileError } = await supabase
         .from(`${role}`)
         .select('onboarding_complete')
@@ -72,13 +72,13 @@ console.log(role, "role from click")
         .single();
 
       if (profileError) {
-        console.log('Error fetching profile:', profileError);
+        // console.log('Error fetching profile:', profileError);
         router.push('./onboarding');
         return;
       }
 
       if (profile?.onboarding_complete) {
-        console.log('Onboarding complete, navigating to DSP home');
+        // console.log('Onboarding complete, navigating to DSP home');
          router.replace({
               pathname: `./${role}`,
               params: { userName: firstName, showBottomNav: role === 'DSP'},
@@ -88,36 +88,39 @@ console.log(role, "role from click")
       }
     }
   } catch (error) {
-    console.error('Unexpected error in handleClick:', error);
+    // console.error('Unexpected error in handleClick:', error);
     router.push('./onboarding');
   } finally {
     setAppLoading(false); 
   }
 };
 
-const getSurvivorEmail = async () => {
-  const {data: profile, error} = await supabase
-  .from('Survivors')
-  .select('email')
-}
 
 const handleMagicLink = async () => {
-  const initialUrl = await Linking.getInitialURL();
-  console.log('Initial URL:', initialUrl);
+   let initialUrl;
+
+  if (Platform.OS === 'web') {
+  initialUrl =  window.location.href;
+  // console.log("we on web")
+   } else {
+    initialUrl = await Linking.getInitialURL();
+    // console.log("we on mobile")
+  }
+  // console.log('Initial URL:', initialUrl);
 
   if (!initialUrl) return;
 
   try {
     const url = new URL(initialUrl);
-    const hash = url.hash;
+    const hash = url.hash || url.search
     
     const params = new URLSearchParams(hash.replace(/^#/, ''));
 
     const access_token = params.get('access_token');
     const refresh_token = params.get('refresh_token');
 
-    // console.log('access_token:', access_token);
-    // console.log('refresh_token:', refresh_token);
+    // // console.log('access_token:', access_token);
+    // // console.log('refresh_token:', refresh_token);
 
     if (access_token && refresh_token) {
       const { error } = await supabase.auth.setSession({
@@ -126,14 +129,14 @@ const handleMagicLink = async () => {
       });
 
       if (error) {
-        Alert.alert('Login Error', error.message);
+        showAlert('Login Error', error.message);
       } else {
-        // console.log('Session set successfully');
+        // // console.log('Session set successfully');
         await refreshSession();
       }
     }
   } catch (error) {
-    console.error('Error parsing magic link:', error);
+    // console.error('Error parsing magic link:', error);
   }
 };
 

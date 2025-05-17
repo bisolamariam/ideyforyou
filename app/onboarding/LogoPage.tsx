@@ -20,14 +20,14 @@ useEffect(() => {
       const { data: authData, error: authError } = await supabase.auth.getUser();
 
       if (authError || !authData?.user) {
-        console.log('Auth Error:', authError);
+        // console.log('Auth Error:', authError);
         router.push('./SignUp');
         return;
       }
 
       const userId = authData.user.id;
-      console.log(authData, "this is auth data")
-      console.log('User ID:', userId);
+      // console.log(authData, "this is auth data")
+      // console.log('User ID:', userId);
       const { data: profile, error: profileError } = await supabase
       .from(`${role}`)
       .select('name')
@@ -35,7 +35,7 @@ useEffect(() => {
       .single();
 
     if (profileError || !profile) {
-      console.log('Profile Error:', profileError);
+      // console.log('Profile Error:', profileError);
       router.push('/SignUp');
       return;
     }
@@ -49,7 +49,7 @@ useEffect(() => {
       params: { userName: firstName, showBottomNav: role === 'DSP' },
     });
   } catch (error) {
-    console.error('Unexpected Error:', error);
+    // console.error('Unexpected Error:', error);
     router.push('/SignUp');
   }
 })();

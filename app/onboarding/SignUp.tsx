@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import Icon from 'react-native-vector-icons/Entypo';
@@ -11,6 +12,7 @@ import {supabase} from '../../lib/supabase'
 import { router } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import { Colors } from '@/constants/Colors';
+import { showAlert } from '@/lib/showAlert';
 const SignUpSchema = Yup.object().shape({
   fullName: Yup.string().required('Full name is required'),
   phoneNumber: Yup.string().required('Phone number is required'),
@@ -30,7 +32,7 @@ const SignUp = () => {
   }) => {
     setLoading(true)
     try {
-      console.log(email)
+      // console.log(email)
   const dspResult = await supabase
       .from('DSP')
       .select('id')
@@ -38,13 +40,13 @@ const SignUp = () => {
       .maybeSingle();
 
     if (dspResult.error && dspResult.error.code !== 'PGRST116') {
-      console.error('Error checking DSP table:', dspResult.error);
+      // console.error('Error checking DSP table:', dspResult.error);
       setLoading(false);
       return;
     }
 
     if (dspResult.data) {
-      Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
+      showAlert('Account Exists', 'An account with this email already exists. Please log in.');
       setLoading(false);
       return;
     }
@@ -56,35 +58,35 @@ const SignUp = () => {
       .maybeSingle();
 
     if (repResult.error && repResult.error.code !== 'PGRST116') {
-      console.error('Error checking REP table:', repResult.error);
+      // console.error('Error checking REP table:', repResult.error);
       setLoading(false);
       return;
     }
 
     if (repResult.data) {
-      Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
+      showAlert('Account Exists', 'An account with this email already exists. Please log in.');
       setLoading(false);
       return;
     }
-    console.log('DSP Result:', dspResult);
-console.log('REP Result:', repResult)
+    // console.log('DSP Result:', dspResult);
+// console.log('REP Result:', repResult)
 
   
 
     // if (dspResult.error && dspResult.error.code !== 'PGRST116') {
-    //   console.error('Error checking DSP table:', dspResult.error);
+    //   // console.error('Error checking DSP table:', dspResult.error);
     //   setLoading(false);
     //   return;
     // }
 
     // if (repResult.error && repResult.error.code !== 'PGRST116') {
-    //   console.error('Error checking REP table:', repResult.error);
+    //   // console.error('Error checking REP table:', repResult.error);
     //   setLoading(false);
     //   return;
     // }
 
     // if (existingUserInDSP || existingUserInREP) {
-    //   Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
+    //   showAlert('Account Exists', 'An account with this email already exists. Please log in.');
     //   setLoading(false);
     //   return;
     // }
@@ -104,14 +106,14 @@ console.log('REP Result:', repResult)
       params: { fullName, phoneNumber, email,role },
     });
   } catch (error) {
-    console.error('Error sending verification code:', error);
-    Alert.alert('Error', 'Failed to send verification code. Please try again.');
+    // console.error('Error sending verification code:', error);
+    showAlert('Error', 'Failed to send verification code. Please try again.');
   } finally {
     setLoading(false)
   }
 };
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.headerContainer}>
         <TouchableOpacity style={styles.backBtn} onPress={() =>  router.back()}>
           <Icon name="chevron-thin-left" size={24} color="#1E1E2D" />
@@ -186,11 +188,11 @@ console.log('REP Result:', repResult)
               <Picker
                 selectedValue={values.role}
                 onValueChange={(itemValue) => setFieldValue('role', itemValue)}
-                style={{ flex: 1 }}
+                style={{ flex: 1, border: 'none',  outlineStyle: 'none' }}
               >
                 <Picker.Item label="Select Role" value="" />
                 <Picker.Item label="Domestic Service Provider" value="DSP" />
-                <Picker.Item label="Real Estate Provider" value="REP" />
+                <Picker.Item label="Real Estate Partner" value="REP" />
               </Picker>
             </View>
             {errors.role && touched.role && <Text style={styles.errorText}>{errors.role}</Text>}
@@ -213,7 +215,7 @@ console.log('REP Result:', repResult)
           </View>
         )}
       </Formik>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -221,7 +223,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 20,
+    padding: 24,
   },
   headerContainer: {
     flexDirection: 'column',
@@ -258,7 +260,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     backgroundColor: 'white',
-    borderColor: '#F4F4F4'
+    borderColor: '#F4F4F4',
+     outlineStyle: 'none'
   },
   errorText: {
     color: 'red',

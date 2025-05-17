@@ -6,7 +6,7 @@ const DSPHome: React.FC = () => {
    const { userName, showBottomNav } = useLocalSearchParams()
   return (
     <>
-      <HomeScreen userName={userName} showBottomNav={true} role="DSP" />
+      <HomeScreen userName={userName} showBottomNav={true} role="DSP" exit={false} />
     </>
   );
 };
