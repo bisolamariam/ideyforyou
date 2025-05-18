@@ -5,7 +5,7 @@ import Button from '../../components/Button';
 import Dot from '../../components/Dot';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import {supabase} from '../../lib/supabase'
-import { showAlert } from '@/lib/showAlert';
+ 
 const VerifyCode = () => {
   const {fullName, phoneNumber,email, role} = useLocalSearchParams()
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -13,7 +13,7 @@ const VerifyCode = () => {
   const [focusedInput, setFocusedInput] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
  
-  const [cooldown, setCooldown] = useState(30);
+  const [cooldown, setCooldown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
   const inputs = useRef<Array<TextInput | null>>([]);
@@ -70,7 +70,7 @@ const VerifyCode = () => {
         onboarding_complete: true
       })
       if(databaseError){
-        showAlert('Failed to create user profile. Please try again.', databaseError.message);
+        Alert.alert('Failed to create user profile. Please try again.', databaseError.message);
         return
       }
 
@@ -84,7 +84,7 @@ const VerifyCode = () => {
       
           if (userError) {
             // console.error(userError)
-             showAlert('Error', 'Failed to update user metadata. Please try again.');
+             Alert.alert('Error', 'Failed to update user metadata. Please try again.');
             return;
           }
 
@@ -123,7 +123,7 @@ const VerifyCode = () => {
     if (error) {
       // console.error('Resend error:', error);
     } else {
-      setCooldown(30);
+      setCooldown(60);
     }
   };
 
@@ -221,7 +221,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 20,
     color: Colors.textDark,
-    outlineStyle: 'none'
   },
   errorBorder: {
     borderColor: 'red',

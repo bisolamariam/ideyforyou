@@ -8,8 +8,7 @@
     "scheme": "ideyforyouapp",
     "platforms": [
       "ios",
-      "android",
-      "web"
+      "android"
     ],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

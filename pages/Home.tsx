@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 interface HomeScreenProps {
   userName: string;
@@ -154,7 +153,7 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
   position: 'absolute',
-  bottom: 100, 
+  bottom: 80, 
   right: 20, 
   backgroundColor: Colors.primary,
   borderRadius: 50,

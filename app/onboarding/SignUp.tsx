@@ -12,7 +12,7 @@ import {supabase} from '../../lib/supabase'
 import { router } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { showAlert } from '@/lib/showAlert';
+ 
 const SignUpSchema = Yup.object().shape({
   fullName: Yup.string().required('Full name is required'),
   phoneNumber: Yup.string().required('Phone number is required'),
@@ -46,7 +46,7 @@ const SignUp = () => {
     }
 
     if (dspResult.data) {
-      showAlert('Account Exists', 'An account with this email already exists. Please log in.');
+      Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
       setLoading(false);
       return;
     }
@@ -64,7 +64,7 @@ const SignUp = () => {
     }
 
     if (repResult.data) {
-      showAlert('Account Exists', 'An account with this email already exists. Please log in.');
+      Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
       setLoading(false);
       return;
     }
@@ -86,7 +86,7 @@ const SignUp = () => {
     // }
 
     // if (existingUserInDSP || existingUserInREP) {
-    //   showAlert('Account Exists', 'An account with this email already exists. Please log in.');
+    //   Alert.alert('Account Exists', 'An account with this email already exists. Please log in.');
     //   setLoading(false);
     //   return;
     // }
@@ -107,7 +107,7 @@ const SignUp = () => {
     });
   } catch (error) {
     // console.error('Error sending verification code:', error);
-    showAlert('Error', 'Failed to send verification code. Please try again.');
+    Alert.alert('Error', 'Failed to send verification code. Please try again.');
   } finally {
     setLoading(false)
   }
@@ -188,11 +188,11 @@ const SignUp = () => {
               <Picker
                 selectedValue={values.role}
                 onValueChange={(itemValue) => setFieldValue('role', itemValue)}
-                style={{ flex: 1, border: 'none',  outlineStyle: 'none' }}
+                style={{ flex: 1, }}
               >
                 <Picker.Item label="Select Role" value="" />
-                <Picker.Item label="Domestic Service Provider" value="DSP" />
-                <Picker.Item label="Real Estate Partner" value="REP" />
+                <Picker.Item label="Domestic Violence Service Provider" value="DSP" />
+                <Picker.Item label="Real Estate Service Provider" value="REP" />
               </Picker>
             </View>
             {errors.role && touched.role && <Text style={styles.errorText}>{errors.role}</Text>}
@@ -261,7 +261,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: 'white',
     borderColor: '#F4F4F4',
-     outlineStyle: 'none'
   },
   errorText: {
     color: 'red',

@@ -5,7 +5,6 @@ import { router, useGlobalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext'
 import { Linking } from 'react-native';
-import { showAlert } from '@/lib/showAlert';
 const API_KEY = 'd56c2e8dd0f2d59d20fb011274dc734e'; 
 
 const dummyData = {
@@ -97,22 +96,13 @@ const handleClick = async () => {
 
 
 const handleMagicLink = async () => {
-   let initialUrl;
-
-  if (Platform.OS === 'web') {
-  initialUrl =  window.location.href;
-  // console.log("we on web")
-   } else {
-    initialUrl = await Linking.getInitialURL();
-    // console.log("we on mobile")
-  }
-  // console.log('Initial URL:', initialUrl);
+   const initialUrl = await Linking.getInitialURL();
 
   if (!initialUrl) return;
 
   try {
     const url = new URL(initialUrl);
-    const hash = url.hash || url.search
+    const hash = url.hash;
     
     const params = new URLSearchParams(hash.replace(/^#/, ''));
 
@@ -129,7 +119,7 @@ const handleMagicLink = async () => {
       });
 
       if (error) {
-        showAlert('Login Error', error.message);
+        Alert.alert('Login Error', error.message);
       } else {
         // // console.log('Session set successfully');
         await refreshSession();
